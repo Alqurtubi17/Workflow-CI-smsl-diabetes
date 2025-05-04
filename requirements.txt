@@ -1,0 +1,6 @@
+pandas
+mlflow
+scikit-learn
+imbalanced-learn
+numpy
+dotenv
