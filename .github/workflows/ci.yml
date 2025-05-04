@@ -31,7 +31,7 @@ jobs:
     - name: Run MLflow Project
       working-directory: MLProject
       run: |
-        mlflow run . --env-manager=local --data_path diabetes_preprocessing.csv
+        mlflow run . --env-manager=local -P data_path=diabetes_preprocessing.csv
 
     - name: Get latest MLflow run_id
       run: |

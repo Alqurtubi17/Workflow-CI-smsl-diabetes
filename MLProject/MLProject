@@ -1,9 +1,9 @@
-name: diabetes_prediction
+name: diabetes-ml
 
-conda_env: conda.yaml
+conda_env: conda.yaml 
 
 entry_points:
   main:
+    command: "python modelling.py --data_path {data_path}"
     parameters:
       data_path: {type: str, default: "diabetes_preprocessing.csv"}
-    command: "python modelling.py --data_path {data_path}"
