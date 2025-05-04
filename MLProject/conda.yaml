@@ -1,0 +1,13 @@
+name: diabetes_env
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.9
+  - pip
+  - scikit-learn
+  - pandas
+  - matplotlib
+  - pip:
+      - mlflow
+      - python-dotenv
