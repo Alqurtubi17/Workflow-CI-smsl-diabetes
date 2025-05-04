@@ -61,20 +61,19 @@ jobs:
         docker push ${{ secrets.DOCKER_USERNAME }}/diabetes-ml-ci:latest
         docker push ${{ secrets.DOCKER_USERNAME }}/diabetes-ml-ci:${GITHUB_SHA}
 
-    - name: Upload Artefacts to GitHub
+    - name: Copy model to artifacts
       run: |
-        # Salin artefak dari direktori model ke folder artifacts
         mkdir -p artifacts
-        cp MLProject/model.pkl artifacts/  
+        cp MLProject/model.pkl artifacts/
 
-        # Commit dan push artefak ke repositori GitHub
-        git config user.name "GitHub Actions"
-        git config user.email "actions@github.com"
-
-        git add artifacts/
-        git commit -m "Upload model artifacts"
-        git remote set-url origin https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}
-        git push origin main  
+    - name: Upload model as GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v1.0.${{ github.run_number }}
+        name: "Model Release ${{ github.run_number }}"
+        files: artifacts/model.pkl
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
     - name: Post Action Log
       run: echo "CI pipeline selesai!"
