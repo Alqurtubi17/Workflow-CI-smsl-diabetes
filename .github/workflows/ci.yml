@@ -70,6 +70,7 @@ jobs:
         # Commit dan push artefak ke repositori GitHub
         git config user.name "GitHub Actions"
         git config user.email "actions@github.com"
+        git remote set-url origin https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}
         git add artifacts/
         git commit -m "Upload model artifacts"
         git push origin main  
