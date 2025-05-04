@@ -1,6 +1,6 @@
 import mlflow
 import mlflow.sklearn
-import argparse
+import argparse, joblib
 from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, f1_score, roc_auc_score, precision_score, recall_score
@@ -56,6 +56,9 @@ def main(data_path):
         mlflow.log_metric("precision", precision)
         mlflow.log_metric("recall", recall)
 
+        # Save the model
+        joblib.dump(best_model, "model.pkl")
+
         print(f"Best params: {best_model.get_params()}")
         print(f"Best model accuracy on test set: {accuracy}")
         print(f"F1 Score: {f1}")
@@ -63,7 +66,7 @@ def main(data_path):
         print(f"Recall: {recall}")
         print(f"Precision: {precision}")
 
-        print("Model berhasil dilogging ke DagsHub MLflow Tracking.")
+        print("Model berhasil dilogging ke DagsHub MLflow Tracking dan di Dump.")
 
 if __name__ == "__main__":
     # Parse arguments
