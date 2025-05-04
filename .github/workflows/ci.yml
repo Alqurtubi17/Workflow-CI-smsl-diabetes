@@ -74,6 +74,19 @@ jobs:
         files: artifacts/model.pkl
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Install rclone
+      run: |
+        curl https://rclone.org/install.sh | sudo bash
+
+    - name: Setup rclone config
+      run: |
+        mkdir -p ~/.config/rclone
+        echo "${{ secrets.RCLONE_CONF }}" > ~/.config/rclone/rclone.conf
+
+    - name: Upload to Google Drive
+      run: |
+        rclone copy ./artifacts/model.pkl gdrive:mlflow-artifacts/ --progress
         
     - name: Post Action Log
       run: echo "CI pipeline selesai!"
