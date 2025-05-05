@@ -82,7 +82,7 @@ jobs:
     - name: Setup rclone config
       run: |
         mkdir -p ~/.config/rclone
-        echo "${{ secrets.RCLONE_CONF }}" > ~/.config/rclone/rclone.conf
+        echo "${{ secrets.RCLONE_CONF_BASE64 }}" | base64 -d > ~/.config/rclone/rclone.conf
 
     - name: Upload to Google Drive
       run: |
