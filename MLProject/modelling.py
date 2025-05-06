@@ -7,6 +7,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.metrics import accuracy_score, f1_score, roc_auc_score, precision_score, recall_score
 from sklearn.base import clone
+import joblib  # Import joblib untuk menyimpan model
 
 def main(data_path):
     # Load dataset
@@ -34,46 +35,51 @@ def main(data_path):
     # Simpan dataset sebagai artifact
     df.to_csv("diabetes_preprocessing.csv", index=False)
 
-    # Loop setiap kombinasi parameter dan log ke MLflow
-    for i, params in enumerate(grid_search.cv_results_['params']):
-        model = clone(base_model)
-        model.set_params(**params)
-        model.fit(X_train, y_train)
+    # Ambil model terbaik dari grid search
+    best_model = grid_search.best_estimator_
 
-        # Prediksi
-        y_train_pred = model.predict(X_train)
-        y_test_pred = model.predict(X_test)
+    # Prediksi menggunakan model terbaik
+    y_train_pred = best_model.predict(X_train)
+    y_test_pred = best_model.predict(X_test)
 
-        # Hitung metrik
-        metrics = {
-            "accuracy_train": accuracy_score(y_train, y_train_pred),
-            "f1_train": f1_score(y_train, y_train_pred),
-            "roc_auc_train": roc_auc_score(y_train, y_train_pred),
-            "recall_train": recall_score(y_train, y_train_pred),
-            "precision_train": precision_score(y_train, y_train_pred),
-            "accuracy_test": accuracy_score(y_test, y_test_pred),
-            "f1_test": f1_score(y_test, y_test_pred),
-            "roc_auc_test": roc_auc_score(y_test, y_test_pred),
-            "recall_test": recall_score(y_test, y_test_pred),
-            "precision_test": precision_score(y_test, y_test_pred),
-            "cv_score": grid_search.cv_results_['mean_test_score'][i]
-        }
+    # Hitung metrik
+    metrics = {
+        "accuracy_train": accuracy_score(y_train, y_train_pred),
+        "f1_train": f1_score(y_train, y_train_pred),
+        "roc_auc_train": roc_auc_score(y_train, y_train_pred),
+        "recall_train": recall_score(y_train, y_train_pred),
+        "precision_train": precision_score(y_train, y_train_pred),
+        "accuracy_test": accuracy_score(y_test, y_test_pred),
+        "f1_test": f1_score(y_test, y_test_pred),
+        "roc_auc_test": roc_auc_score(y_test, y_test_pred),
+        "recall_test": recall_score(y_test, y_test_pred),
+        "precision_test": precision_score(y_test, y_test_pred),
+        "cv_score": grid_search.best_score_  # Best cross-validation score
+    }
 
-        run_name = f"rf_n{params['n_estimators']}_d{params['max_depth']}_s{params['min_samples_split']}"
+    # Log to MLflow
+    with mlflow.start_run(run_name="Best RandomForest Model"):
+        # Log best parameters and metrics
+        mlflow.log_params(grid_search.best_params_)
+        for key, value in metrics.items():
+            mlflow.log_metric(key, value)
 
-        with mlflow.start_run(run_name=run_name):
-            mlflow.log_params(params)
-            for key, value in metrics.items():
-                mlflow.log_metric(key, value)
+        # Log the best model
+        mlflow.sklearn.log_model(best_model, "best_model")
 
-            mlflow.sklearn.log_model(model, "model")
-            mlflow.log_artifact("diabetes_preprocessing.csv")
+        # Save the best model with joblib
+        joblib.dump(best_model, "model.pkl")
+        mlflow.log_artifact("model.pkl")  # Log the dumped model as artifact
 
-            with open("metrics.json", "w") as f:
-                json.dump(metrics, f, indent=4)
-            mlflow.log_artifact("metrics.json")
+        # Save metrics as JSON
+        with open("metrics.json", "w") as f:
+            json.dump(metrics, f, indent=4)
+        mlflow.log_artifact("metrics.json")
 
-    print("Semua kombinasi parameter berhasil dilogging ke MLflow.")
+        # Save the dataset as artifact
+        mlflow.log_artifact("diabetes_preprocessing.csv")
+
+    print("Best model berhasil dilogging ke MLflow dan disimpan dengan nama 'best_model.pkl'.")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
